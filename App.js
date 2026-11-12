@@ -1,128 +1,196 @@
-import React, { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { TextInput } from 'react-native';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, TextInput } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useState, useEffect } from 'react';
+
 
 export default function App() {
   const [count, setCount] = useState(0);
   const [tarefaAtual, setTarefaAtual] = useState('');
   const [listaTarefas, setListaTarefas] = useState([]);
+
+
+  useEffect(() => {
+    resgatarDadosLocal();
+  }, []);
+
+
+  const salvarDadosLocal = async (novaLista) => {
+    try {
+      const listaString = JSON.stringify(novaLista);
+      await AsyncStorage.setItem('minhas_tarefas', listaString);
+      console.log('Salvo com sucesso:', listaString);
+    } catch (error) {
+      console.log('Erro ao salvar dados localmente:', error);
+    }
+  };
+
+
+  const resgatarDadosLocal = async () => {
+    try {
+      const textoLido = await AsyncStorage.getItem('minhas_tarefas');
+      if (textoLido !== null) {
+        const listaRecuperada = JSON.parse(textoLido);
+        setListaTarefas(listaRecuperada);
+        console.log('Carregado com sucesso:', listaRecuperada);
+      }
+    } catch (error) {
+      console.log('Erro ao resgatar dados localmente:', error);
+    }
+  };
+
+
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Olá, seja bem-vindo!</Text>
-      <TextInput 
-        placeholder="Digite algo..." 
-        style={styles.TextInput} 
-        value={tarefaAtual}
-        onChangeText={setTarefaAtual}
-      />
+      <Text style={styles.text}>Bom dia!</Text>
 
-      <TouchableOpacity style={styles.button} onPress={() => setCount(count + 1)}>
-        <Text style={styles.buttonText}>Clique aqui</Text>
-      </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={() => {
-        setListaTarefas([...listaTarefas, tarefaAtual]);
-        setTarefaAtual('');
-      }}>
-        <Text style={styles.buttonText}>Adicionar Tarefa</Text>
-      </TouchableOpacity>
+      <View style={styles.BtContainer}>
+        <TextInput
+          placeholder="Digite uma tarefa"
+          style={styles.textInput}
+          value={tarefaAtual}
+          onChangeText={setTarefaAtual}
+        />
 
-      <ScrollView style={styles.listaTarefas}>
-        {listaTarefas.map((tarefa, index) => (
-          <Text key={index}>{tarefa}</Text>
-        ))}
-      </ScrollView>
 
-    <Text style={styles.text}>{count}</Text>
-    <View style={styles.cor1}></View>
-    <View style={styles.cor2}></View>
-    <View style={styles.cor3}></View>
+        <TouchableOpacity
+          style={styles.bt}
+          onPress={() => {
+            const novaLista = [...listaTarefas, tarefaAtual];
+            setListaTarefas(novaLista);
+            setTarefaAtual('');
+            salvarDadosLocal(novaLista);
+          }}
+        >
+          <Text style={styles.btText}>+</Text>
+        </TouchableOpacity>
+
+
+        <TouchableOpacity style={styles.bt} onPress={() => setCount(count + 1)}>
+          <Text style={styles.btText}>{count}</Text>
+        </TouchableOpacity>
+
+
+        <ScrollView style={styles.listaTarefas}>
+          {listaTarefas.map((tarefa, index) => (
+            <Text key={index} style={styles.itemTexto}>• {tarefa}</Text>
+          ))}
+        </ScrollView>
+
+
+        <TouchableOpacity
+          style={styles.bt1}
+          onPress={() => {
+            resgatarDadosLocal();
+          }}
+        >
+          <Text style={styles.btText}>Carregar Banco</Text>
+        </TouchableOpacity>
+      </View>
+
+
+      <View style={styles.cor1}></View>
+      <View style={styles.cor2}></View>
+      <View style={styles.cor3}></View>
       <StatusBar style="auto" />
     </View>
   );
 }
 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
-    paddingTop: 60,
-    paddingHorizontal: 20,
+    backgroundColor: '#F8FAFC',
     alignItems: 'center',
+    justifyContent: 'space-around',
+    paddingVertical: 50,
+    paddingHorizontal: 20,
   },
   text: {
-    fontSize: 22,
+    fontSize: 26,
     fontWeight: '700',
-    color: '#1F2937',
-    marginVertical: 12,
-    textAlign: 'center',
+    color: '#1E293B',
+    marginBottom: 10,
   },
-  TextInput: {
+  BtContainer: {
     width: '100%',
-    height: 50,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  textInput: {
+    flex: 1,
+    minWidth: 150,
+    height: 48,
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    borderColor: '#CBD5E1',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    paddingHorizontal: 16,
-    fontSize: 16,
-    color: '#1F2937',
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    fontSize: 15,
+    color: '#0F172A',
   },
-  button: {
-    width: '100%',
-    height: 50,
-    backgroundColor: '#2563EB',
-    borderRadius: 12,
+  bt: {
+    width: 48,
+    height: 48,
+    backgroundColor: '#4F46E5',
     justifyContent: 'center',
     alignItems: 'center',
-    marginVertical: 6,
-    shadowColor: '#2563EB',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
+    borderRadius: 10,
     elevation: 3,
   },
-  buttonText: {
+  bt1: {
+    width: '100%',
+    height: 48,
+    backgroundColor: '#10B981',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 10,
+    marginTop: 8,
+  },
+  btText: {
     color: '#FFFFFF',
+    fontWeight: '700',
     fontSize: 16,
-    fontWeight: '600',
   },
   listaTarefas: {
     width: '100%',
-    maxHeight: 180,
+    maxHeight: 150,
+    marginTop: 15,
+    padding: 12,
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginVertical: 12,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#E2E8F0',
+  },
+  itemTexto: {
+    fontSize: 16,
+    color: '#1E293B',
+    paddingVertical: 4,
   },
   cor1: {
-    width: 60,
-    height: 60,
-    borderRadius: 12,
     backgroundColor: '#EF4444',
-    marginVertical: 4,
+    width: 80,
+    height: 80,
+    borderRadius: 16,
+    margin: 6,
   },
   cor2: {
-    width: 60,
-    height: 60,
-    borderRadius: 12,
     backgroundColor: '#10B981',
-    marginVertical: 4,
+    width: 80,
+    height: 80,
+    borderRadius: 16,
+    margin: 6,
   },
   cor3: {
-    width: 60,
-    height: 60,
-    borderRadius: 12,
     backgroundColor: '#3B82F6',
-    marginVertical: 4,
+    width: 80,
+    height: 80,
+    borderRadius: 16,
+    margin: 6,
   },
 });
